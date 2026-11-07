@@ -77,3 +77,18 @@ fn sample_document() {
     assert!(md.len() > 200, "{} bytes only: {md}", md.len());
     assert!(md.contains("Portable Document Format"), "{md}");
 }
+
+/// A few more documents, converted for inspection only: the interesting part
+/// is that they do not panic and produce sane text.
+#[test]
+fn more_documents() {
+    for name in ["ep.pdf", "ep2.pdf", "example.pdf", "xelatex-drawboard.pdf"] {
+        let Some((md, path)) = convert(name) else {
+            eprintln!("skipping {name}: not present");
+            continue;
+        };
+        eprintln!("wrote {} ({} bytes)", path.display(), md.len());
+        assert!(!md.trim().is_empty(), "{name} produced nothing");
+        assert!(!md.contains('\0'), "{name} contains NUL");
+    }
+}

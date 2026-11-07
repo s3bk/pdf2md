@@ -217,9 +217,11 @@ fn flow_to_markdown(out: &mut String, flow: &Flow, body: f32, options: &Options)
             RunType::Table(table) => {
                 flush(&mut para, out);
                 // The line splitter calls anything with wide gaps a table;
-                // a single row (or column) is a formula or a stray line, not
-                // a table, and renders better as plain text.
-                if table.rows.len() < 2 || table.columns < 2 {
+                // that includes formulas and stray lines, which render better
+                // as text. A real table needs a second row and a second
+                // column.
+                let rows = table_rows(table);
+                if rows.len() < 2 || table.columns < 2 {
                     let text = table_text(table);
                     if !text.is_empty() {
                         out.push_str(&text);
@@ -316,27 +318,10 @@ fn words_text(words: &[Word]) -> String {
     s
 }
 
-fn table_text(table: &TableRun) -> String {
-    let mut s = String::new();
-    for row in &table.rows {
-        for cell in row.iter().flatten() {
-            let text = cell.text.trim();
-            if text.is_empty() {
-                continue;
-            }
-            if !s.is_empty() {
-                s.push(' ');
-            }
-            s.push_str(text);
-        }
-    }
-    s
-}
-
-fn write_table(out: &mut String, table: &TableRun) {    let columns = table.columns;
-    if columns == 0 {
-        return;
-    }
+/// A table's cells as escaped strings, row by row, with rows that hold no
+/// text at all dropped and every row padded to `columns`.
+fn table_rows(table: &TableRun) -> Vec<Vec<String>> {
+    let columns = table.columns;
     let mut rows: Vec<Vec<String>> = vec![];
     for row in &table.rows {
         let mut cells: Vec<String> = (0..columns)
@@ -353,6 +338,31 @@ fn write_table(out: &mut String, table: &TableRun) {    let columns = table.colu
         cells.resize(columns, String::new());
         rows.push(cells);
     }
+    rows
+}
+
+fn table_text(table: &TableRun) -> String {    let mut s = String::new();
+    for row in &table.rows {
+        for cell in row.iter().flatten() {
+            let text = cell.text.trim();
+            if text.is_empty() {
+                continue;
+            }
+            if !s.is_empty() {
+                s.push(' ');
+            }
+            s.push_str(text);
+        }
+    }
+    s
+}
+
+fn write_table(out: &mut String, table: &TableRun) {
+    let columns = table.columns;
+    if columns == 0 {
+        return;
+    }
+    let rows = table_rows(table);
     if rows.is_empty() {
         return;
     }

@@ -69,4 +69,19 @@ development checkout, in that order, and does nothing if the variable is set.
 
 The local checkouts of `pdf` and `pdf_render` are pinned in `Cargo.toml` via
 `[patch]`, because `pdf_text` needs a `pdf_render` that has caught up with the
-`pdf` API.
+`pdf` API. `pdf_text` itself is a path dependency on the working copy in
+`/home/hematite/pdf_text` (it has changes this crate needs: the span placement
+fix and tables in `Flow`); switch it to the git dependency once those are
+pushed.
+
+## Known gaps
+
+* No bold/italic: `pdf_text` reports bold in its run classification, but the
+  classification is not exported per word.
+* A page's tables are whatever `pdf_text`'s line splitter thinks a table is; a
+  formula with wide gaps can come out as a one-row table. Rows/columns are not
+  re-checked against column x positions.
+* No lists, links, footnotes or images.
+* Text within a word can pick up a spurious space where glyph positions jump
+  ("AMENDM ENTS").
+
