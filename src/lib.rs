@@ -38,6 +38,10 @@ pub struct Options {
     pub page_break: PageBreak,
     /// Emit `<!-- page N -->` before each page's content.
     pub page_comments: bool,
+    /// The page number of the first flow handed to [`flows_to_markdown`], so
+    /// that the comments name the pages of the file even when only a slice of
+    /// it was converted (`--pages 28-32`). Only used by `page_comments`.
+    pub first_page: usize,
     /// Never emit a heading deeper than this level; deeper ones are clamped.
     pub max_heading_level: u8,
     /// Join words split by a line-end hyphen ("exam-" / "ple").
@@ -49,6 +53,7 @@ impl Default for Options {
         Options {
             page_break: PageBreak::Rule,
             page_comments: false,
+            first_page: 1,
             max_heading_level: 3,
             dehyphenate: true,
         }
@@ -144,7 +149,7 @@ pub fn flows_to_markdown(pages: &[Flow], options: &Options) -> String {
             }
         }
         if options.page_comments {
-            let _ = writeln!(out, "<!-- page {} -->\n", i + 1);
+            let _ = writeln!(out, "<!-- page {} -->\n", i + options.first_page);
         }
         flow_to_markdown(&mut out, flow, body, options);
     }

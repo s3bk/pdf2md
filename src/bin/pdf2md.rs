@@ -93,6 +93,7 @@ fn main() -> ExitCode {
     };
 
     let (first, last) = pages.unwrap_or((1, usize::MAX));
+    options.first_page = first;
     pdf2md::prepare();
     let resolver = file.resolver();
     let mut flows = vec![];
