@@ -78,9 +78,10 @@ pub fn to_flows<B: Backend>(file: &CachedFile<B>) -> Result<Vec<Flow>, PdfError>
     let resolver = file.resolver();
     let mut pages = vec![];
     let mut document = pdf_text::text::Stats::new();
+    let cache = pdf_text::new_trace_cache();
     for page in file.pages() {
         let page = page?;
-        pages.push(pdf_text::run_with_stats(file, &page, &resolver, &mut document)?);
+        pages.push(pdf_text::run_cached(file, &page, &resolver, &mut document, &cache)?);
     }
     Ok(pages)
 }

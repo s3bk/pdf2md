@@ -97,6 +97,7 @@ fn main() -> ExitCode {
     let resolver = file.resolver();
     let mut flows = vec![];
     let mut document = pdf_text::text::Stats::new();
+    let cache = pdf_text::new_trace_cache();
     for (nr, page) in file.pages().enumerate() {
         let nr = nr + 1;
         if nr > last {
@@ -107,7 +108,7 @@ fn main() -> ExitCode {
         }
         let run = page
             .map_err(|e| e.to_string())
-            .and_then(|page| pdf_text::run_with_stats(&file, &page, &resolver, &mut document).map_err(|e| e.to_string()));
+            .and_then(|page| pdf_text::run_cached(&file, &page, &resolver, &mut document, &cache).map_err(|e| e.to_string()));
         match run {
             Ok(flow) => flows.push(flow),
             Err(e) if skip_errors => {
