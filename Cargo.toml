@@ -1,0 +1,22 @@
+[package]
+name = "pdf2md"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Convert PDF documents to Markdown"
+keywords = ["pdf", "markdown", "text", "convert"]
+
+[dependencies]
+pdf = { git = "https://github.com/pdf-rs/pdf", features = ["cache"] }
+pdf_text = { path = "/home/hematite/pdf_text" }
+
+[dev-dependencies]
+tempfile = "3"
+
+# The upstream pdf_render master has not caught up with the pdf API yet, and
+# pdf_text needs that; the local checkouts are pinned here.
+[patch."https://github.com/pdf-rs/pdf"]
+pdf = { path = "/home/hematite/task-clones/pdf/pdf" }
+
+[patch."https://github.com/pdf-rs/pdf_render"]
+pdf_render = { path = "/home/hematite/task-clones/pdf_render/render" }
