@@ -8,6 +8,7 @@
 //!   --page-comments    emit <!-- page N -->
 //!   --max-heading N    deepest heading level to emit (default: 3)
 //!   --no-dehyphenate   keep line-end hyphens
+//!   --skip-errors      skip pages that fail to extract (reported on stderr)
 //! ```
 //!
 //! Without OUTPUT the Markdown goes to stdout.
@@ -17,6 +18,7 @@ use std::process::ExitCode;
 
 use pdf::file::FileOptions;
 use pdf2md::{Options, PageBreak};
+use pdf_text::entry::Flow;
 
 fn usage() -> ExitCode {
     eprintln!(
@@ -29,6 +31,7 @@ fn usage() -> ExitCode {
 fn main() -> ExitCode {
     let mut options = Options::default();
     let mut pages: Option<(usize, usize)> = None;
+    let mut skip_errors = false;
     let mut positional: Vec<String> = vec![];
 
     let mut args = std::env::args().skip(1);
@@ -68,6 +71,7 @@ fn main() -> ExitCode {
                 options.max_heading_level = n;
             }
             "--no-dehyphenate" => options.dehyphenate = false,
+            "--skip-errors" => skip_errors = true,
             _ if arg.starts_with('-') && arg != "-" => {
                 eprintln!("pdf2md: unknown option {arg:?}");
                 return usage();
@@ -88,43 +92,35 @@ fn main() -> ExitCode {
         }
     };
 
-    let markdown = if let Some((first, last)) = pages {
-        pdf2md::prepare();
-        let resolver = file.resolver();
-        let mut flows = vec![];
-        for (nr, page) in file.pages().enumerate() {
-            let nr = nr + 1;
-            if nr > last {
-                break;
-            }
-            if nr < first {
-                continue;
-            }
-            let page = match page {
-                Ok(page) => page,
-                Err(e) => {
-                    eprintln!("pdf2md: page {nr}: {e}");
-                    return ExitCode::FAILURE;
-                }
-            };
-            match pdf_text::run(&file, &page, &resolver) {
-                Ok(flow) => flows.push(flow),
-                Err(e) => {
-                    eprintln!("pdf2md: page {nr}: {e}");
-                    return ExitCode::FAILURE;
-                }
-            }
+    let (first, last) = pages.unwrap_or((1, usize::MAX));
+    pdf2md::prepare();
+    let resolver = file.resolver();
+    let mut flows = vec![];
+    for (nr, page) in file.pages().enumerate() {
+        let nr = nr + 1;
+        if nr > last {
+            break;
         }
-        pdf2md::flows_to_markdown(&flows, &options)
-    } else {
-        match pdf2md::to_markdown(&file, &options) {
-            Ok(md) => md,
+        if nr < first {
+            continue;
+        }
+        let run = page
+            .map_err(|e| e.to_string())
+            .and_then(|page| pdf_text::run(&file, &page, &resolver).map_err(|e| e.to_string()));
+        match run {
+            Ok(flow) => flows.push(flow),
+            Err(e) if skip_errors => {
+                // Leave an empty flow so the page numbering stays right.
+                eprintln!("pdf2md: page {nr} skipped: {e}");
+                flows.push(Flow::new());
+            }
             Err(e) => {
-                eprintln!("pdf2md: {e}");
+                eprintln!("pdf2md: page {nr}: {e}");
                 return ExitCode::FAILURE;
             }
         }
-    };
+    }
+    let markdown = pdf2md::flows_to_markdown(&flows, &options);
 
     match positional.get(1) {
         Some(output) => {
