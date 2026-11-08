@@ -65,6 +65,63 @@ pub fn to_markdown<B: Backend>(file: &CachedFile<B>, options: &Options) -> Resul
     let pages = to_flows(file)?;
     Ok(flows_to_markdown(&pages, options))
 }
+/// Convert a PDF on disk, optionally only the pages listed in `pages`
+/// (1-based; `None` = all, unsorted and repeated numbers are fine).
+///
+/// Returns the document's page count and the Markdown. This is the entry point
+/// for callers that hold a path rather than a `pdf::file::File` — an agent
+/// tool, say — so they do not have to depend on `pdf` themselves.
+pub fn to_markdown_file(
+    path: impl AsRef<std::path::Path>,
+    options: &Options,
+    pages: Option<&[u32]>,
+) -> Result<(usize, String), PdfError> {
+    let file = pdf::file::FileOptions::cached().open(path)?;
+    let flows = to_flows(&file)?;
+    let total = flows.len();
+    let Some(pages) = pages else {
+        return Ok((total, flows_to_markdown(&flows, options)));
+    };
+    // Heading levels are judged against the body size of the whole document,
+    // so the yardstick is measured over every page, not the chosen ones.
+    let body = body_height(&flows);
+    let mut out = String::new();
+    let mut first = true;
+    for nr in pages.iter().copied().collect::<std::collections::BTreeSet<_>>() {
+        let Some(flow) = nr.checked_sub(1).and_then(|i| flows.get(i as usize)) else {
+            continue;
+        };
+        if !first {
+            page_break_between(&mut out, options.page_break);
+        }
+        first = false;
+        if options.page_comments {
+            let _ = writeln!(out, "<!-- page {nr} -->\n");
+        }
+        flow_to_markdown(&mut out, flow, body, options);
+    }
+    let mut s = out.trim_end().to_string();
+    if !s.is_empty() {
+        s.push('\n');
+    }
+    Ok((total, s))
+}
+
+/// The break `flows_to_markdown` puts between two pages.
+fn page_break_between(out: &mut String, kind: PageBreak) {
+    if let PageBreak::None = kind {
+        return;
+    }
+    if !out.is_empty() && !out.ends_with("\n\n") {
+        out.push_str(if out.ends_with('\n') { "\n" } else { "\n\n" });
+    }
+    match kind {
+        PageBreak::Rule => out.push_str("---\n\n"),
+        PageBreak::Html => out.push_str("<div style=\"page-break-after: always\"></div>\n\n"),
+        PageBreak::None => {}
+    }
+}
+
 /// Convert a single page.
 pub fn page_to_markdown<B: Backend>(
     file: &CachedFile<B>,
@@ -132,21 +189,7 @@ pub fn flows_to_markdown(pages: &[Flow], options: &Options) -> String {
     let mut out = String::new();
     for (i, flow) in pages.iter().enumerate() {
         if i > 0 {
-            match options.page_break {
-                PageBreak::None => {}
-                kind => {
-                    if !out.is_empty() && !out.ends_with("\n\n") {
-                        out.push_str(if out.ends_with('\n') { "\n" } else { "\n\n" });
-                    }
-                    match kind {
-                        PageBreak::Rule => out.push_str("---\n\n"),
-                        PageBreak::Html => {
-                            out.push_str("<div style=\"page-break-after: always\"></div>\n\n")
-                        }
-                        PageBreak::None => {}
-                    }
-                }
-            }
+            page_break_between(&mut out, options.page_break);
         }
         if options.page_comments {
             let _ = writeln!(out, "<!-- page {} -->\n", i + options.first_page);
