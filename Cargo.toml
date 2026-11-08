@@ -7,16 +7,12 @@ description = "Convert PDF documents to Markdown"
 keywords = ["pdf", "markdown", "text", "convert"]
 
 [dependencies]
-pdf = { git = "https://github.com/pdf-rs/pdf", features = ["cache"] }
-pdf_text = { path = "/home/hematite/pdf_text" }
+# Sebastian's forks, fetched over ssh: the whole chain (pdf, pdf_render,
+# pdf_text, pdf2md) is published there, so this crate resolves on a machine
+# that is not the one it was written on. Seb, 2026-11-08: "publish pdf2md and
+# reference via ssh link" — "i can't build the repo because of path deps".
+pdf = { git = "ssh://git@github.com/s3bk/pdf.git", branch = "master", features = ["cache"] }
+pdf_text = { git = "ssh://git@github.com/s3bk/pdf_text.git", branch = "master" }
 
 [dev-dependencies]
 tempfile = "3"
-
-# The upstream pdf_render master has not caught up with the pdf API yet, and
-# pdf_text needs that; the local checkouts are pinned here.
-[patch."https://github.com/pdf-rs/pdf"]
-pdf = { path = "/home/hematite/task-clones/pdf/pdf" }
-
-[patch."https://github.com/pdf-rs/pdf_render"]
-pdf_render = { path = "/home/hematite/task-clones/pdf_render/render" }
