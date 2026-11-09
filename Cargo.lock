@@ -26,6 +26,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "alloc-no-stdlib"
+version = "2.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cc7bb162ec39d46ab1ca8c77bf72e890535becd1751bb45f64c597edb4c8c6b3"
+
+[[package]]
+name = "alloc-stdlib"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e76a019e91224d279006ff972f1e984179a6e9feb050adba6ce8274aef23195"
+dependencies = [
+ "alloc-no-stdlib",
+]
+
+[[package]]
 name = "allocator-api2"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -103,6 +118,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "710f1dd022ef4e93f8a438b4ba958de7f64308434fa6a87104481645cc30068b"
 dependencies = [
  "hybrid-array",
+]
+
+[[package]]
+name = "brotli-decompressor"
+version = "5.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a32acac15fe1967bc3986b2a6347dffc965602354ea6f450ad07e8bfd253583"
+dependencies = [
+ "alloc-no-stdlib",
+ "alloc-stdlib",
 ]
 
 [[package]]
@@ -936,10 +961,11 @@ dependencies = [
 [[package]]
 name = "pdf"
 version = "0.10.0"
-source = "git+ssh://git@github.com/s3bk/pdf.git?branch=master#e52ee04811e70b399f4a05eb47c3af2475522a22"
+source = "git+ssh://git@github.com/s3bk/pdf.git?branch=master#9c51f54c0334a44d938baa00ba29d27acca2a096"
 dependencies = [
  "aes",
  "bitflags 2.13.2",
+ "brotli-decompressor",
  "cbc",
  "datasize",
  "deflate",
@@ -973,7 +999,7 @@ dependencies = [
 [[package]]
 name = "pdf_derive"
 version = "0.3.0"
-source = "git+ssh://git@github.com/s3bk/pdf.git?branch=master#e52ee04811e70b399f4a05eb47c3af2475522a22"
+source = "git+ssh://git@github.com/s3bk/pdf.git?branch=master#9c51f54c0334a44d938baa00ba29d27acca2a096"
 dependencies = [
  "proc-macro2",
  "quote",
