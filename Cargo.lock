@@ -968,6 +968,7 @@ dependencies = [
  "pdf",
  "pdf_text",
  "tempfile",
+ "zune-jpeg",
 ]
 
 [[package]]
