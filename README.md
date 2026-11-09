@@ -65,14 +65,22 @@ Courier, Symbol, ZapfDingbats) in `$STANDARD_FONTS` — see
 looks for `standard_fonts/`, `../pdf_render/standard_fonts` and a local
 development checkout, in that order, and does nothing if the variable is set.
 
-## Development
+## Building elsewhere (and on macOS)
 
-The local checkouts of `pdf` and `pdf_render` are pinned in `Cargo.toml` via
-`[patch]`, because `pdf_text` needs a `pdf_render` that has caught up with the
-`pdf` API. `pdf_text` itself is a path dependency on the working copy in
-`/home/hematite/pdf_text` (it has changes this crate needs: the span placement
-fix and tables in `Flow`); switch it to the git dependency once those are
-pushed.
+Nothing here is platform-specific: no `cfg(unix)`, no C dependencies, no
+system libraries. Two things are about *reaching* the sources, not compiling:
+
+* The four crates come from Sebastian's forks over **ssh** (`pdf`, `pdf_text`,
+  `pdf_render`, and through them `font`). The machine needs a key GitHub
+  accepts (`ssh -T git@github.com`).
+* `.cargo/config.toml` sets `net.git-fetch-with-cli = true`. Cargo's built-in
+  git client has no ssh-agent, so on macOS (key in the agent, or a passphrase)
+  it cannot fetch `ssh://git@github.com/...` and the build stops at
+  "failed to load source"; the `git` command handles the same URL fine.
+
+On macOS that is usually the whole story. `cargo build` also needs a linker —
+if Xcode's Command Line Tools are missing, `xcode-select --install` first.
+`$STANDARD_FONTS` (see above) is a *runtime* requirement, not a build one.
 
 ## Known gaps
 

@@ -1,0 +1,7 @@
+# Fetch git dependencies with the `git` command rather than cargo's built-in
+# git client. The pdf-rs forks (pdf, pdf_render, pdf_text) are private and
+# reached over ssh: libgit2 has no ssh-agent, so on a machine whose key lives
+# in the agent or has a passphrase (macOS with the default setup, most CI
+# images) cargo cannot fetch them, while `git` itself works.
+[net]
+git-fetch-with-cli = true
