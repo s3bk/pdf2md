@@ -14,17 +14,5 @@ keywords = ["pdf", "markdown", "text", "convert"]
 pdf = { git = "ssh://git@github.com/s3bk/pdf.git", branch = "master", features = ["cache"] }
 pdf_text = { git = "ssh://git@github.com/s3bk/pdf_text.git", branch = "master" }
 
-# pdf's manifest turns zune-jpeg's defaults off (`default-features = false`)
-# and only re-adds them in its own x86 / x86_64 target tables. Without the
-# `std` feature, zune-jpeg's `DecodeErrors` has no `std::error::Error` impl,
-# and pdf's snafu source conversion (`as_error_source`) fails to compile —
-# on aarch64 only, i.e. exactly the Apple Silicon Mac build ("error[E0599]:
-# the method `as_error_source` exists for reference `&DecodeErrors`").
-# Naming the crate here with its defaults on during an aarch64 build turns
-# `std` back on for the one zune-jpeg instance the graph shares. Delete this
-# once pdf declares `features = ["std"]` itself.
-[target.'cfg(target_arch = "aarch64")'.dependencies]
-zune-jpeg = "0.5.15"
-
 [dev-dependencies]
 tempfile = "3"

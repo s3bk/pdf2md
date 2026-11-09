@@ -936,7 +936,7 @@ dependencies = [
 [[package]]
 name = "pdf"
 version = "0.10.0"
-source = "git+ssh://git@github.com/s3bk/pdf.git?branch=master#1fedf847453b9142a8007edf6dac2490af577ab1"
+source = "git+ssh://git@github.com/s3bk/pdf.git?branch=master#e52ee04811e70b399f4a05eb47c3af2475522a22"
 dependencies = [
  "aes",
  "bitflags 2.13.2",
@@ -968,13 +968,12 @@ dependencies = [
  "pdf",
  "pdf_text",
  "tempfile",
- "zune-jpeg",
 ]
 
 [[package]]
 name = "pdf_derive"
 version = "0.3.0"
-source = "git+ssh://git@github.com/s3bk/pdf.git?branch=master#1fedf847453b9142a8007edf6dac2490af577ab1"
+source = "git+ssh://git@github.com/s3bk/pdf.git?branch=master#e52ee04811e70b399f4a05eb47c3af2475522a22"
 dependencies = [
  "proc-macro2",
  "quote",
