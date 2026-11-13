@@ -7,12 +7,12 @@ description = "Convert PDF documents to Markdown"
 keywords = ["pdf", "markdown", "text", "convert"]
 
 [dependencies]
-# Sebastian's forks, fetched over ssh: the whole chain (pdf, pdf_render,
+# Sebastian's forks, fetched over https: the whole chain (pdf, pdf_render,
 # pdf_text, pdf2md) is published there, so this crate resolves on a machine
-# that is not the one it was written on. Seb, 2026-11-08: "publish pdf2md and
-# reference via ssh link" — "i can't build the repo because of path deps".
-pdf = { git = "ssh://git@github.com/s3bk/pdf.git", branch = "master", features = ["cache"] }
-pdf_text = { git = "ssh://git@github.com/s3bk/pdf_text.git", branch = "master" }
+# that is not the one it was written on, with no key and no ssh (public since
+# 2026-11-13; ssh until then, which is why every clone needed s3bk's key).
+pdf = { git = "https://github.com/s3bk/pdf.git", branch = "master", features = ["cache"] }
+pdf_text = { git = "https://github.com/s3bk/pdf_text.git", branch = "master" }
 
 [dev-dependencies]
 tempfile = "3"
